@@ -1,17 +1,23 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet, Animated } from "react-native";
+import { View, StyleSheet, Animated, Text } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/src/constants/theme";
 import { StatusBar } from "expo-status-bar";
+import { useOnboarding } from "@/src/hooks/useOnboarding";
+import { useAuth } from "@/src/hooks/useAuth";
 
 /**
  * Splash/Index screen - shows briefly on app launch
- * The root layout will handle routing to onboarding/login/tabs
+ * Checks onboarding and auth status, then routes accordingly
  */
 export default function IndexScreen() {
   const fadeAnim = new Animated.Value(0);
   const scaleAnim = new Animated.Value(0.8);
+  const { hasCompletedOnboarding, isLoading: onboardingLoading } = useOnboarding();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  const isLoading = onboardingLoading || authLoading;
 
   useEffect(() => {
     // Animate the logo
@@ -28,15 +34,23 @@ export default function IndexScreen() {
         useNativeDriver: true,
       }),
     ]).start();
+  }, []);
 
-    // Give the splash screen a brief moment, then let the layout handle routing
+  useEffect(() => {
+    if (isLoading) return;
+
     const timer = setTimeout(() => {
-      // The root layout will determine where to go
-      router.replace("/(tabs)");
-    }, 1500);
+      if (!hasCompletedOnboarding) {
+        router.replace("/onboarding");
+      } else if (!isAuthenticated) {
+        router.replace("/login");
+      } else {
+        router.replace("/(tabs)");
+      }
+    }, 1200);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [isLoading, hasCompletedOnboarding, isAuthenticated]);
 
   return (
     <View style={styles.container}>

@@ -1,7 +1,23 @@
 import { useState, useEffect } from "react";
+import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 
 const ONBOARDING_KEY = "onboarding_completed";
+
+async function getStoredValue(key: string): Promise<string | null> {
+  if (Platform.OS === "web") {
+    return localStorage.getItem(key);
+  }
+  return SecureStore.getItemAsync(key);
+}
+
+async function setStoredValue(key: string, value: string): Promise<void> {
+  if (Platform.OS === "web") {
+    localStorage.setItem(key, value);
+    return;
+  }
+  return SecureStore.setItemAsync(key, value);
+}
 
 export interface OnboardingHook {
   hasCompletedOnboarding: boolean;
@@ -22,7 +38,7 @@ export function useOnboarding(): OnboardingHook {
 
   const checkOnboardingStatus = async () => {
     try {
-      const value = await SecureStore.getItemAsync(ONBOARDING_KEY);
+      const value = await getStoredValue(ONBOARDING_KEY);
       setHasCompletedOnboarding(value === "true");
     } catch (error) {
       console.error("Error checking onboarding status:", error);
@@ -34,7 +50,7 @@ export function useOnboarding(): OnboardingHook {
 
   const completeOnboarding = async () => {
     try {
-      await SecureStore.setItemAsync(ONBOARDING_KEY, "true");
+      await setStoredValue(ONBOARDING_KEY, "true");
       setHasCompletedOnboarding(true);
     } catch (error) {
       console.error("Error completing onboarding:", error);
