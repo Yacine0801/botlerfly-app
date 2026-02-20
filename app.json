@@ -44,6 +44,9 @@
           "color": "#E8943A"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "EXPO_PUBLIC_GEMINI_API_KEY": "${EXPO_PUBLIC_GEMINI_API_KEY}"
+    }
   }
 }
